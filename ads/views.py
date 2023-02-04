@@ -2,7 +2,10 @@ import json
 
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
+from django.utils.decorators import method_decorator
+from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import DetailView
 
 from ads.models import Category, Ad
 
@@ -12,9 +15,9 @@ def start_page(request):
     return HttpResponse('200 {"status": "ok"}')
 
 
-@csrf_exempt
-def category_all(request):
-    if request.method == "GET":
+@method_decorator(csrf_exempt, name='dispatch')
+class CategoryView(View):
+    def get(self, request):
         cat = Category.objects.all()
 
         response = []
@@ -26,7 +29,7 @@ def category_all(request):
 
         return JsonResponse(response, safe=False, json_dumps_params={'ensure_ascii': False})
 
-    elif request.method == "POST":
+    def post(self, request):
         cat_data = json.loads(request.body)
 
         category = Category()
@@ -39,9 +42,15 @@ def category_all(request):
         })
 
 
-def get_category_id(request, category_id):
-    if request.method == "GET":
-        cat = Category.objects.get(pk=category_id)
+class CategoryDetailView(DetailView):
+    model = Category
+
+    def get(self, request, *args, **kwargs):
+        try:
+            cat = self.get_object()
+        except Category.DoesNotExist:
+            return JsonResponse({
+              'status': 'error'}, status=404)
 
         return JsonResponse({
             'id': cat.id,
@@ -49,9 +58,9 @@ def get_category_id(request, category_id):
         })
 
 
-@csrf_exempt
-def ad_all(request):
-    if request.method == "GET":
+@method_decorator(csrf_exempt, name='dispatch')
+class AdView(View):
+    def get(self, request):
         ad = Ad.objects.all()
 
         response = []
@@ -68,7 +77,7 @@ def ad_all(request):
 
         return JsonResponse(response, safe=False, json_dumps_params={'ensure_ascii': False})
 
-    elif request.method == "POST":
+    def post(self, request):
         ad_data = json.loads(request.body)
 
         ads = Ad()
@@ -91,9 +100,15 @@ def ad_all(request):
         })
 
 
-def get_ad_id(request, ad_id):
-    if request.method == "GET":
-        ad = Ad.objects.get(pk=ad_id)
+class AdDetailView(DetailView):
+    model = Ad
+
+    def get(self, request, *args, **kwargs):
+        try:
+            ad = self.get_object()
+        except Ad.DoesNotExist:
+            return JsonResponse({
+                'status': 'error'}, status=404)
 
         return JsonResponse({
             'id': ad.id,
