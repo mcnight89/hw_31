@@ -50,14 +50,15 @@ class CategoryDetailView(DetailView):
             cat = self.get_object()
         except Category.DoesNotExist:
             return JsonResponse({
-              'status': 'error'}, status=404)
+                'status': 'error'}, status=404)
 
         return JsonResponse({
             'id': cat.id,
             'name': cat.name
         })
 
-
+# ===========================================================================
+# ===========================================================================
 @method_decorator(csrf_exempt, name='dispatch')
 class AdView(View):
     def get(self, request):
@@ -71,7 +72,7 @@ class AdView(View):
                 'author': a.author,
                 'price': a.price,
                 'description': a.description,
-                'address': a.address,
+                # 'image': a.image.url,
                 'is_published': a.is_published
             })
 
@@ -116,6 +117,18 @@ class AdDetailView(DetailView):
             'author': ad.author,
             'price': ad.price,
             'description': ad.description,
-            'address': ad.address,
+            # 'image': ad.image.url,
             'is_published': ad.is_published
         })
+
+# ===========================================================================
+# ===========================================================================
+
+
+
+
+
+
+
+# ===========================================================================
+# ===========================================================================
