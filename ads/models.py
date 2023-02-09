@@ -1,13 +1,9 @@
+
 from unicodedata import category
 
 from django.db import models
 
 
-# Create your models here.
-# categ   id,name
-# ad    id,name,author_id,price,description,is_published,image,category_id
-# location id,name,lat,lng
-# user id,first_name,last_name,username,password,role,age,location_id
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
@@ -19,27 +15,10 @@ class Category(models.Model):
         return self.name
 
 
-class Ad(models.Model):
-    name = models.CharField(max_length=100)
-    author = models.CharField(max_length=100)
-    price = models.IntegerField()
-    description = models.TextField(max_length=1000)
-    # image = models.ImageField(upload_to='ads/', blank=True, null=True)
-    # category_id = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
-    is_published = models.BooleanField()
-
-    class Meta:
-        verbose_name = "Объявление"
-        verbose_name_plural = "Объявления"
-
-    def __str__(self):
-        return self.name
-
-
 class Location(models.Model):
     name = models.CharField(max_length=100)
-    lat = models.FloatField()
-    lng = models.FloatField()
+    lat = models.DecimalField(max_digits=8, decimal_places=6, blank=True, null=True)
+    lng = models.DecimalField(max_digits=8, decimal_places=6, blank=True, null=True)
 
     class Meta:
         verbose_name = "Локация"
@@ -49,19 +28,41 @@ class Location(models.Model):
         return self.name
 
 
-# user id,first_name,last_name,username,password,role,age,location_id
 class User(models.Model):
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    username = models.CharField(max_length=100)
+    ROLES = [
+        ('admin', 'Admin'),
+        ('member', 'Member'),
+        ('moderator', 'Moderator')
+    ]
+    first_name = models.CharField(max_length=100, null=True)
+    last_name = models.CharField(max_length=100, null=True)
+    username = models.CharField(max_length=100, unique=True)
     password = models.CharField(max_length=100)
-    role = models.CharField(max_length=100)
+    role = models.CharField(choices=ROLES, max_length=15, default='member')
     age = models.IntegerField()
-    location_id = models.ForeignKey(Location, on_delete=models.CASCADE, null=True)
+    location = models.ForeignKey(Location, on_delete=models.CASCADE, null=True)
 
     class Meta:
         verbose_name = "Пользователь"
         verbose_name_plural = "пользователи"
+        ordering = ['username']
 
     def __str__(self):
         return self.username
+
+
+class Ad(models.Model):
+    name = models.CharField(max_length=100)
+    author_id = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    price = models.IntegerField()
+    description = models.TextField(max_length=1000, null=True)
+    image = models.ImageField(upload_to='ads/images', null=True, blank=True)
+    category_id = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
+    is_published = models.BooleanField()
+
+    class Meta:
+        verbose_name = "Объявление"
+        verbose_name_plural = "Объявления"
+
+    def __str__(self):
+        return self.name
