@@ -1,5 +1,7 @@
 import json
 
+from django.core.paginator import Paginator
+from django.db.models import Count, Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
@@ -8,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, UpdateView, DeleteView, CreateView
 
 from ads.models import Ad, User, Category, Location
+from djangoProject import settings
 
 
 # Create your views here.
@@ -106,9 +109,13 @@ class AdListView(ListView):
     def get(self, request, *args, **kwargs):
         super().get(request, *args, **kwargs)
 
-        response = []
-        for a in self.object_list:
-            response.append({
+        paginator = Paginator(self.object_list, settings.TOTAL_ON_PAGE)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        ads = []
+        for a in page_obj:
+            ads.append({
                 'id': a.id,
                 'name': a.name,
                 'author_id': a.author_id.username,
@@ -118,6 +125,12 @@ class AdListView(ListView):
                 'image': a.image.url if a.image else None,
                 'category_id': a.category_id.name
             })
+
+        response = {
+            "items": ads,
+            "num_pages": paginator.num_pages,
+            "total": paginator.count
+        }
 
         return JsonResponse(response, safe=False, json_dumps_params={'ensure_ascii': False})
 
@@ -245,7 +258,6 @@ class AdDeleteView(DeleteView):
 # ===========================================================================
 # ===========================================================================
 
-# id,first_name,last_name,username,password,role,age,location_id
 
 @method_decorator(csrf_exempt, name='dispatch')
 class UserListView(ListView):
@@ -253,19 +265,29 @@ class UserListView(ListView):
 
     def get(self, request, *args, **kwargs):
         super().get(request, *args, **kwargs)
+        users = (self.object_list.annotate(ads_published=Count('ad', filter=Q(ad__is_published=True)))
+                 .select_related('location'))
 
-        response = []
-        for u in self.object_list:
-            response.append({
-                'id': u.id,
-                'first_name': u.first_name,
-                'last_name': u.last_name,
-                'username': u.username,
-                'password': u.password,
-                'role': u.role,
-                'age': u.age,
-                'location_id': u.location_id
-            })
+        paginator = Paginator(users, settings.TOTAL_ON_PAGE)
+        page_number = request.GET.get('page')
+        users_on_page = paginator.get_page(page_number)
+
+        response = {
+            "items": [
+                {
+                    'id': u.id,
+                    'first_name': u.first_name,
+                    'last_name': u.last_name,
+                    'username': u.username,
+                    'password': u.password,
+                    'role': u.role,
+                    'age': u.age,
+                    'location_id': u.location.name,
+                    'ads_published': u.ads_published
+                } for u in users_on_page],
+            'total': paginator.count,
+            'num_pages': paginator.num_pages
+        }
 
         return JsonResponse(response, safe=False, json_dumps_params={'ensure_ascii': False})
 
