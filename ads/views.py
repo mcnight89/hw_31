@@ -115,7 +115,7 @@ class AdListView(ListView):
                 'price': a.price,
                 'description': a.description,
                 'is_published': a.is_published,
-                'image': a.image.url,
+                'image': a.image.url if a.image else None,
                 'category_id': a.category_id.name
             })
 
@@ -147,7 +147,7 @@ class AdCreateView(CreateView):
             'price': ads.price,
             'description': ads.description,
             'is_published': ads.is_published,
-            'image': ads.image.url,
+            'image': ads.image.url if ads.image else None,
             'category_id': ads.category_id.name
         })
 
@@ -169,7 +169,7 @@ class AdDetailView(DetailView):
             'author': ad.author_id.username,
             'price': ad.price,
             'description': ad.description,
-            'image': ad.image.url,
+            'image': ad.image.url if ad.image else None,
             'is_published': ad.is_published,
             'category_id': ad.category_id.name
         })
@@ -182,15 +182,15 @@ class AdUpdateView(UpdateView):
 
     def patch(self, request, *args, **kwargs):
         super().post(request, *args, **kwargs)
-        cat_data = json.loads(request.body)
+        ad_data = json.loads(request.body)
 
-        self.object.name = cat_data['name']
-        self.object.author = cat_data['author_id']
-        self.object.price = cat_data['price']
-        self.object.description = cat_data['description']
-        self.object.is_published = cat_data['is_published']
-        self.object.image = cat_data['image']
-        self.object.category_id = cat_data['category_id']
+        self.object.name = ad_data['name']
+        self.object.author = ad_data['author_id']
+        self.object.price = ad_data['price']
+        self.object.description = ad_data['description']
+        self.object.is_published = ad_data['is_published']
+        self.object.image = ad_data['image']
+        self.object.category_id = ad_data['category_id']
 
         self.object.save()
 
@@ -201,10 +201,34 @@ class AdUpdateView(UpdateView):
             'price': self.object.price,
             'description': self.object.description,
             'is_published': self.object.is_published,
-            'image': self.object.image,
+            'image': self.image.url if self.object.image else None,
             'category_id': self.object.category_id.name
 
         })
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AdImageView(UpdateView):
+    model = Ad
+    fields = '__all__'
+
+    def post(self, request, *args, **kwargs):
+        ad = self.get_object()
+        ad.image = request.FILES.get('image')
+        ad.save()
+
+        response = {
+            'id': ad.id,
+            'name': ad.name,
+            'author': ad.author_id.username,
+            'price': ad.price,
+            'description': ad.description,
+            'image': ad.image.url if ad.image else None,
+            'is_published': ad.is_published,
+            'category_id': ad.category_id.name
+        }
+
+        return JsonResponse(response, safe=False, json_dumps_params={'ensure_ascii': False})
 
 
 @method_decorator(csrf_exempt, name='dispatch')
