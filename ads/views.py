@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, UpdateView, DeleteView, CreateView
 
 from ads.models import Ad, User, Category, Location
+from ads.serializers import CategorySerializer
 from djangoProject import settings
 
 
@@ -25,12 +26,15 @@ class CategoryListView(ListView):
     def get(self, request, *args, **kwargs):
         super().get(request, *args, **kwargs)
 
-        response = []
-        for c in self.object_list:
-            response.append({
-                'id': c.id,
-                'name': c.name
-            })
+        response = {
+            "items": CategorySerializer(self.object_list, many=True).data
+        }
+
+        #for c in self.object_list:
+           # response.append({
+            #    'id': c.id,
+            #    'name': c.name
+            #})
 
         return JsonResponse(response, safe=False, json_dumps_params={'ensure_ascii': False})
 
