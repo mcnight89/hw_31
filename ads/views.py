@@ -8,9 +8,12 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, UpdateView, DeleteView, CreateView
+from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView
 
 from ads.models import Ad, User, Category, Location
-from ads.serializers import CategorySerializer, LocationSerializer, AdSerializer, UserSerializer, UserCreateSerializer
+from ads.serializers import CategorySerializer, LocationSerializer, AdSerializer, UserSerializer, UserCreateSerializer, \
+    CategoryDetailSerializer, AdDetailSerializer, UserDetailSerializer, LocationDetailSerializer, \
+    LocationCreateSerializer, AdCreateSerializer, CategoryCreateSerializer
 from djangoProject import settings
 
 
@@ -20,55 +23,21 @@ def start_page(request):
 
 
 # ===========================================================================
-                                   # CATEGORY #
+# CATEGORY #
 # ===========================================================================
-@method_decorator(csrf_exempt, name='dispatch')
-class CategoryListView(ListView):
-    model = Category
-
-    def get(self, request, *args, **kwargs):
-        super().get(request, *args, **kwargs)
-
-        response = {
-            "items": CategorySerializer(self.object_list, many=True).data
-        }
-
-        return JsonResponse(response, safe=False, json_dumps_params={'ensure_ascii': False})
+class CategoryListView(ListAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class CategoryCreateView(CreateView):
-    model = Category
-    fields = ['name']
-
-    def post(self, request, *args, **kwargs):
-        cat_data = json.loads(request.body)
-
-        category = Category.objects.create(
-            name=cat_data['name']
-        )
-
-        return JsonResponse({
-            'id': category.id,
-            'name': category.name
-        })
+class CategoryCreateView(CreateAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategoryCreateSerializer
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class CategoryDetailView(DetailView):
-    model = Category
-
-    def get(self, request, *args, **kwargs):
-        try:
-            cat = self.get_object()
-        except Category.DoesNotExist:
-            return JsonResponse({
-                'status': 'error'}, status=404)
-
-        return JsonResponse({
-            'id': cat.id,
-            'name': cat.name
-        })
+class CategoryDetailView(RetrieveAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategoryDetailSerializer
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -102,82 +71,22 @@ class CategoryDeleteView(DeleteView):
 
 
 # ===========================================================================
-                                       # ADS #
+# ADS #
 # ===========================================================================
-@method_decorator(csrf_exempt, name='dispatch')
-class AdListView(ListView):
-    model = Ad
 
-    def get(self, request, *args, **kwargs):
-        super().get(request, *args, **kwargs)
-
-        paginator = Paginator(self.object_list, settings.TOTAL_ON_PAGE)
-        page_number = request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-
-        list(map(lambda x: setattr(x, "author_id", x.author_id if x.author_id else None), page_obj))
-        list(map(lambda x: setattr(x, "category_id", x.category_id if x.category_id else None), page_obj))
-
-        response = {
-            "items": AdSerializer(page_obj, many=True).data,
-            "num_pages": paginator.num_pages,
-            "total": paginator.count
-        }
-
-        return JsonResponse(response, safe=False, json_dumps_params={'ensure_ascii': False})
+class AdListView(ListAPIView):
+    queryset = Ad.objects.all()
+    serializer_class = AdSerializer
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class AdCreateView(CreateView):
-    model = Ad
-    fields = ['name', "author_id", "price", "description", "is_published", "image", "category_id"]
-
-    def post(self, request, *args, **kwargs):
-        ad_data = json.loads(request.body)
-
-        ads = Ad.objects.create(
-            name=ad_data['name'],
-            author_id=ad_data['author_id'],
-            price=ad_data['price'],
-            description=ad_data['description'],
-            is_published=ad_data['is_published'],
-            image=ad_data['image'],
-            category_id=ad_data['category_id']
-        )
-
-        return JsonResponse({
-            'id': ads.id,
-            'name': ads.name,
-            'author_id': ads.author_id.username,
-            'price': ads.price,
-            'description': ads.description,
-            'is_published': ads.is_published,
-            'image': ads.image.url if ads.image else None,
-            'category_id': ads.category_id.name
-        })
+class AdCreateView(CreateAPIView):
+    queryset = Ad.objects.all()
+    serializer_class = AdCreateSerializer
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class AdDetailView(DetailView):
-    model = Ad
-
-    def get(self, request, *args, **kwargs):
-        try:
-            ad = self.get_object()
-        except Ad.DoesNotExist:
-            return JsonResponse({
-                'status': 'error'}, status=404)
-
-        return JsonResponse({
-            'id': ad.id,
-            'name': ad.name,
-            'author': ad.author_id.username,
-            'price': ad.price,
-            'description': ad.description,
-            'image': ad.image.url if ad.image else None,
-            'is_published': ad.is_published,
-            'category_id': ad.category_id.name
-        })
+class AdDetailView(RetrieveAPIView):
+    queryset = Ad.objects.all()
+    serializer_class = AdDetailSerializer
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -248,32 +157,13 @@ class AdDeleteView(DeleteView):
 
 
 # ===========================================================================
-                                        # USERS #
+# USERS #
 # ===========================================================================
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class UserListView(ListView):
-    model = User
-
-    def get(self, request, *args, **kwargs):
-        super().get(request, *args, **kwargs)
-        users = (self.object_list.annotate(ads_published=Count('ad', filter=Q(ad__is_published=True)))
-                 .select_related('location'))
-
-        paginator = Paginator(users, settings.TOTAL_ON_PAGE)
-        page_number = request.GET.get('page')
-        users_on_page = paginator.get_page(page_number)
-
-        list(map(lambda x: setattr(x, "location", x.location if x.location else None), users_on_page))
-
-        response = {
-            "items": UserSerializer(users_on_page, many=True).data,
-            'total': paginator.count,
-            'num_pages': paginator.num_pages
-        }
-
-        return JsonResponse(response, safe=False, json_dumps_params={'ensure_ascii': False})
+class UserListView(ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -291,26 +181,14 @@ class UserCreateView(CreateView):
         return JsonResponse(user_data.data)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class UserDetailView(DetailView):
-    model = User
+class UserDetailView(RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserDetailSerializer
 
-    def get(self, request, *args, **kwargs):
-        try:
-            user = self.get_object()
-        except User.DoesNotExist:
-            return JsonResponse({
-                'status': 'error'}, status=404)
 
-        return JsonResponse({
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'username': user.username,
-            'password': user.password,
-            'role': user.role,
-            'age': user.age,
-            'location_id': user.location_id
-        })
+class UserCreateView(CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserCreateSerializer
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -356,56 +234,23 @@ class UserDeleteView(DeleteView):
 
 
 # ===========================================================================
-                                        # LOCATION #
+# LOCATION #
 # ===========================================================================
 
-@method_decorator(csrf_exempt, name='dispatch')
-class LocationListView(ListView):
-    model = Location
 
-    def get(self, request, *args, **kwargs):
-        super().get(request, *args, **kwargs)
-
-        response = {
-            "items": LocationSerializer(self.object_list, many=True).data
-        }
-
-        return JsonResponse(response, safe=False, json_dumps_params={'ensure_ascii': False})
+class LocationListView(ListAPIView):
+    queryset = Location.objects.all()
+    serializer_class = LocationSerializer
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class LocationCreateView(CreateView):
-    model = Location
-    fields = ['name', 'lat', 'lng']
-
-    def post(self, request, *args, **kwargs):
-        loc_data = json.loads(request.body)
-
-        category = Location.objects.create(
-            name=loc_data['name']
-        )
-
-        return JsonResponse({
-            'id': category.id,
-            'name': category.name
-        })
+class LocationCreateView(CreateAPIView):
+    queryset = Location.objects.all()
+    serializer_class = LocationCreateSerializer
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class LocationDetailView(DetailView):
-    model = Location
-
-    def get(self, request, *args, **kwargs):
-        try:
-            cat = self.get_object()
-        except Location.DoesNotExist:
-            return JsonResponse({
-                'status': 'error'}, status=404)
-
-        return JsonResponse({
-            'id': cat.id,
-            'name': cat.name
-        })
+class LocationDetailView(RetrieveAPIView):
+    queryset = Location.objects.all()
+    serializer_class = LocationDetailSerializer
 
 
 @method_decorator(csrf_exempt, name='dispatch')

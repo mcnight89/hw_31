@@ -2,8 +2,9 @@ from rest_framework import serializers
 
 from ads.models import Location, Category, Ad, User
 
+
 # ===========================================================================
-                            # ADS #
+# ADS #
 # ===========================================================================
 class AdSerializer(serializers.ModelSerializer):
     author_id = serializers.CharField()
@@ -14,8 +15,22 @@ class AdSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class AdDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ad
+        fields = '__all__'
+
+
+class AdCreateSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = Ad
+        fields = '__all__'
+
+
 # ===========================================================================
-                            # CATEGORY #
+# CATEGORY #
 # ===========================================================================
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -24,8 +39,22 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class CategoryDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = '__all__'
+
+
+class CategoryCreateSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = Category
+        fields = '__all__'
+
+
 # ===========================================================================
-                                # USERS #
+# USERS #
 # ===========================================================================
 
 class UserSerializer(serializers.ModelSerializer):
@@ -51,9 +80,23 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 
 # ===========================================================================
-                           # LOCATIONS #
+# LOCATIONS #
 # ===========================================================================
 class LocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = '__all__'
+
+
+class LocationDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = '__all__'
+
+
+class LocationCreateSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+
     class Meta:
         model = Location
         fields = '__all__'
