@@ -29,6 +29,18 @@ class AdCreateSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class AdUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ad
+        fields = '__all__'
+
+
+class AdDestroySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ad
+        fields = ['id']
+
+
 # ===========================================================================
 # CATEGORY #
 # ===========================================================================
@@ -46,11 +58,23 @@ class CategoryDetailSerializer(serializers.ModelSerializer):
 
 
 class CategoryCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = '__all__'
+
+
+class CategoryUpdateSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
 
     class Meta:
         model = Category
         fields = '__all__'
+
+
+class CategoryDestroySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id']
 
 
 # ===========================================================================
@@ -79,6 +103,18 @@ class UserCreateSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'
+
+
+class UserDestroySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id']
+
+
 # ===========================================================================
 # LOCATIONS #
 # ===========================================================================
@@ -100,3 +136,15 @@ class LocationCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
         fields = '__all__'
+
+
+class LocationUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = '__all__'
+
+
+class LocationDestroySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = ['id']
