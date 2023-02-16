@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, UpdateView, DeleteView, CreateView
 
 from ads.models import Ad, User, Category, Location
-from ads.serializers import CategorySerializer
+from ads.serializers import CategorySerializer, LocationSerializer, AdSerializer, UserSerializer, UserCreateSerializer
 from djangoProject import settings
 
 
@@ -19,6 +19,9 @@ def start_page(request):
     return HttpResponse('БЕГИТЕ ГЛУПЦЫ')
 
 
+# ===========================================================================
+                                   # CATEGORY #
+# ===========================================================================
 @method_decorator(csrf_exempt, name='dispatch')
 class CategoryListView(ListView):
     model = Category
@@ -29,12 +32,6 @@ class CategoryListView(ListView):
         response = {
             "items": CategorySerializer(self.object_list, many=True).data
         }
-
-        #for c in self.object_list:
-           # response.append({
-            #    'id': c.id,
-            #    'name': c.name
-            #})
 
         return JsonResponse(response, safe=False, json_dumps_params={'ensure_ascii': False})
 
@@ -105,6 +102,7 @@ class CategoryDeleteView(DeleteView):
 
 
 # ===========================================================================
+                                       # ADS #
 # ===========================================================================
 @method_decorator(csrf_exempt, name='dispatch')
 class AdListView(ListView):
@@ -117,21 +115,11 @@ class AdListView(ListView):
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 
-        ads = []
-        for a in page_obj:
-            ads.append({
-                'id': a.id,
-                'name': a.name,
-                'author_id': a.author_id.username,
-                'price': a.price,
-                'description': a.description,
-                'is_published': a.is_published,
-                'image': a.image.url if a.image else None,
-                'category_id': a.category_id.name
-            })
+        list(map(lambda x: setattr(x, "author_id", x.author_id if x.author_id else None), page_obj))
+        list(map(lambda x: setattr(x, "category_id", x.category_id if x.category_id else None), page_obj))
 
         response = {
-            "items": ads,
+            "items": AdSerializer(page_obj, many=True).data,
             "num_pages": paginator.num_pages,
             "total": paginator.count
         }
@@ -260,6 +248,7 @@ class AdDeleteView(DeleteView):
 
 
 # ===========================================================================
+                                        # USERS #
 # ===========================================================================
 
 
@@ -276,19 +265,10 @@ class UserListView(ListView):
         page_number = request.GET.get('page')
         users_on_page = paginator.get_page(page_number)
 
+        list(map(lambda x: setattr(x, "location", x.location if x.location else None), users_on_page))
+
         response = {
-            "items": [
-                {
-                    'id': u.id,
-                    'first_name': u.first_name,
-                    'last_name': u.last_name,
-                    'username': u.username,
-                    'password': u.password,
-                    'role': u.role,
-                    'age': u.age,
-                    'location_id': u.location.name,
-                    'ads_published': u.ads_published
-                } for u in users_on_page],
+            "items": UserSerializer(users_on_page, many=True).data,
             'total': paginator.count,
             'num_pages': paginator.num_pages
         }
@@ -302,27 +282,13 @@ class UserCreateView(CreateView):
     fields = ['first_name', "last_name", "username", "password", "role", "age", "location_id"]
 
     def post(self, request, *args, **kwargs):
-        user_data = json.loads(request.body)
+        user_data = UserCreateSerializer(data=json.loads(request.body))
+        if user_data.is_valid():
+            user_data.save()
+        else:
+            return JsonResponse(user_data.errors)
 
-        user = User.objects.create(
-            first_name=user_data['first_name'],
-            last_name=user_data['last_name'],
-            price=user_data['price'],
-            password=user_data['password'],
-            role=user_data['role'],
-            age=user_data['age'],
-            location_id=user_data['location_id']
-        )
-
-        return JsonResponse({
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'price': user.price,
-            'password': user.password,
-            'role': user.role,
-            'age': user.age,
-            'location_id': user.location_id
-        })
+        return JsonResponse(user_data.data)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -381,6 +347,89 @@ class UserUpdateView(UpdateView):
 @method_decorator(csrf_exempt, name='dispatch')
 class UserDeleteView(DeleteView):
     model = User
+    success_url = '/'
+
+    def delete(self, request, *args, **kwargs):
+        super().delete(request, *args, **kwargs)
+
+        return JsonResponse({"DELETED"}, status=200)
+
+
+# ===========================================================================
+                                        # LOCATION #
+# ===========================================================================
+
+@method_decorator(csrf_exempt, name='dispatch')
+class LocationListView(ListView):
+    model = Location
+
+    def get(self, request, *args, **kwargs):
+        super().get(request, *args, **kwargs)
+
+        response = {
+            "items": LocationSerializer(self.object_list, many=True).data
+        }
+
+        return JsonResponse(response, safe=False, json_dumps_params={'ensure_ascii': False})
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class LocationCreateView(CreateView):
+    model = Location
+    fields = ['name', 'lat', 'lng']
+
+    def post(self, request, *args, **kwargs):
+        loc_data = json.loads(request.body)
+
+        category = Location.objects.create(
+            name=loc_data['name']
+        )
+
+        return JsonResponse({
+            'id': category.id,
+            'name': category.name
+        })
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class LocationDetailView(DetailView):
+    model = Location
+
+    def get(self, request, *args, **kwargs):
+        try:
+            cat = self.get_object()
+        except Location.DoesNotExist:
+            return JsonResponse({
+                'status': 'error'}, status=404)
+
+        return JsonResponse({
+            'id': cat.id,
+            'name': cat.name
+        })
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class LocationUpdateView(UpdateView):
+    model = Category
+    fields = ['name']
+
+    def patch(self, request, *args, **kwargs):
+        super().post(request, *args, **kwargs)
+        cat_data = json.loads(request.body)
+
+        self.object.name = cat_data['name']
+
+        self.object.save()
+
+        return JsonResponse({
+            'id': self.object.id,
+            'name': self.object.name
+        })
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class LocationDeleteView(DeleteView):
+    model = Category
     success_url = '/'
 
     def delete(self, request, *args, **kwargs):
