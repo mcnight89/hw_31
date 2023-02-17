@@ -86,11 +86,12 @@ class AdListView(ListAPIView):
         if category_id_q:
             self.queryset = self.queryset.filter(category_id_q)
 
-        price = request.GET.get('price', None)
-        if price:
-            self.queryset = self.queryset.filter(price__gte=price)
-        else:
-            self.queryset = self.queryset.filter(price__lte=price)
+        price_from = request.GET.get('price_from', None)
+        price_to = request.GET.get('price_to', None)
+        if price_from:
+            self.queryset = self.queryset.filter(price__gte=price_from)
+        if price_to:
+            self.queryset = self.queryset.filter(price__lte=price_to)
 
         return super().get(request, *args, **kwargs)
 
