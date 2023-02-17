@@ -16,9 +16,14 @@ Including another URLconf
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework import routers
 
 from ads import views
+from ads.views import LocationViewSet
 from djangoProject import settings
+
+router = routers.SimpleRouter()
+router.register('location', LocationViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,11 +31,11 @@ urlpatterns = [
     path('category/', include('ads.urls_cat')),
     path('ads/', include('ads.urls_ad')),
     path('users/', include('ads.urls_user')),
-    path('location/', include('ads.urls_loc')),
     path('api_auth/', include('rest_framework.urls'))
 
 ]
 
+urlpatterns += router.urls
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

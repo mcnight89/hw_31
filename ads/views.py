@@ -9,13 +9,14 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, UpdateView, DeleteView, CreateView
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
+from rest_framework.viewsets import ModelViewSet
 
 from ads.models import Ad, User, Category, Location
 from ads.serializers import CategorySerializer, LocationSerializer, AdSerializer, UserSerializer, UserCreateSerializer, \
-    CategoryDetailSerializer, AdDetailSerializer, UserDetailSerializer, LocationDetailSerializer, \
-    LocationCreateSerializer, AdCreateSerializer, CategoryCreateSerializer, CategoryUpdateSerializer, \
-    AdUpdateSerializer, UserUpdateSerializer, LocationUpdateSerializer, CategoryDestroySerializer, AdDestroySerializer, \
-    UserDestroySerializer, LocationDestroySerializer
+    CategoryDetailSerializer, AdDetailSerializer, UserDetailSerializer, AdCreateSerializer, CategoryCreateSerializer, \
+    CategoryUpdateSerializer, \
+    AdUpdateSerializer, UserUpdateSerializer, CategoryDestroySerializer, AdDestroySerializer, \
+    UserDestroySerializer
 from djangoProject import settings
 
 
@@ -174,27 +175,6 @@ class UserDeleteView(DestroyAPIView):
 # LOCATION #
 # ===========================================================================
 
-
-class LocationListView(ListAPIView):
+class LocationViewSet(ModelViewSet):
     queryset = Location.objects.all()
     serializer_class = LocationSerializer
-
-
-class LocationCreateView(CreateAPIView):
-    queryset = Location.objects.all()
-    serializer_class = LocationCreateSerializer
-
-
-class LocationDetailView(RetrieveAPIView):
-    queryset = Location.objects.all()
-    serializer_class = LocationDetailSerializer
-
-
-class LocationUpdateView(UpdateAPIView):
-    queryset = Location.objects.all()
-    serializer_class = LocationUpdateSerializer
-
-
-class LocationDeleteView(DestroyAPIView):
-    queryset = Location.objects.all()
-    serializer_class = LocationDestroySerializer
