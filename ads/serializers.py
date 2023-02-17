@@ -26,13 +26,13 @@ class AdCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ad
-        fields = '__all__'
+        fields = ['id', 'name', 'author_id', 'category_id', 'price', 'description', 'is_published']
 
 
 class AdUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ad
-        fields = '__all__'
+        fields = ['id', 'name', 'author_id', 'category_id', 'price', 'description', 'is_published']
 
 
 class AdDestroySerializer(serializers.ModelSerializer):

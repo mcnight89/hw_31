@@ -31,6 +31,15 @@ class CategoryListView(ListAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
+    def get(self, request, *args, **kwargs):
+        category_text = request.GET.get('name', None)
+        if category_text:
+            self.queryset = self.queryset.filter(
+                name__icontains=category_text
+            )
+
+        return super().get(request, *args, **kwargs)
+
 
 class CategoryCreateView(CreateAPIView):
     queryset = Category.objects.all()
@@ -59,6 +68,31 @@ class CategoryDeleteView(DestroyAPIView):
 class AdListView(ListAPIView):
     queryset = Ad.objects.all()
     serializer_class = AdSerializer
+
+    def get(self, request, *args, **kwargs):
+        location = request.GET.get('location', None)
+        if location:
+            self.queryset = self.queryset.filter(
+                author_id__location__name__icontains=location
+            )
+
+        category_ids = request.GET.getlist('category_id', None)
+        category_id_q = None
+        for cat in category_ids:
+            if category_id_q is None:
+                category_id_q = Q(category_id__in=cat)
+            else:
+                category_id_q |= Q(category_id__in=cat)
+        if category_id_q:
+            self.queryset = self.queryset.filter(category_id_q)
+
+        price = request.GET.get('price', None)
+        if price:
+            self.queryset = self.queryset.filter(price__gte=price)
+        else:
+            self.queryset = self.queryset.filter(price__lte=price)
+
+        return super().get(request, *args, **kwargs)
 
 
 class AdCreateView(CreateAPIView):
