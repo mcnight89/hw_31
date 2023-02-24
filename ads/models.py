@@ -1,5 +1,6 @@
 from unicodedata import category
 
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
@@ -28,7 +29,7 @@ class Location(models.Model):
         return self.name
 
 
-class User(models.Model):
+class User(AbstractUser):
     ROLES = [
         ('admin', 'Admin'),
         ('member', 'Member'),
