@@ -10,11 +10,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, UpdateView, DeleteView, CreateView
 from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from ads.models import Ad, User, Category, Location
+from ads.permission import AdCreatePermission, AdDeletePermission
 from ads.serializers import CategorySerializer, LocationSerializer, AdSerializer, UserSerializer, UserCreateSerializer, \
     CategoryDetailSerializer, AdDetailSerializer, UserDetailSerializer, AdCreateSerializer, CategoryCreateSerializer, \
     CategoryUpdateSerializer, \
@@ -103,11 +105,13 @@ class AdListView(ListAPIView):
 class AdCreateView(CreateAPIView):
     queryset = Ad.objects.all()
     serializer_class = AdCreateSerializer
+    permission_classes = [IsAuthenticated, AdCreatePermission]
 
 
 class AdDetailView(RetrieveAPIView):
     queryset = Ad.objects.all()
     serializer_class = AdDetailSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class AdUpdateView(UpdateAPIView):
@@ -142,7 +146,7 @@ class AdImageView(UpdateView):
 class AdDeleteView(DestroyAPIView):
     queryset = Ad.objects.all()
     serializer_class = AdDestroySerializer
-
+    permission_classes = [IsAuthenticated, AdDeletePermission]
 
 # ===========================================================================
 # USERS #

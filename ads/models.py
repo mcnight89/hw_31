@@ -30,17 +30,20 @@ class Location(models.Model):
 
 
 class User(AbstractUser):
+    admin = 'admin'
+    member = 'member'
+    moderator = 'moderator'
     ROLES = [
-        ('admin', 'Admin'),
-        ('member', 'Member'),
-        ('moderator', 'Moderator')
+        (admin, admin),
+        (member, member),
+        (moderator, moderator)
     ]
     first_name = models.CharField(max_length=100, null=True)
     last_name = models.CharField(max_length=100, null=True)
     username = models.CharField(max_length=100, unique=True)
     password = models.CharField(max_length=100)
     role = models.CharField(choices=ROLES, max_length=15, default='member')
-    age = models.IntegerField()
+    age = models.IntegerField(null=True)
     location = models.ForeignKey(Location, on_delete=models.CASCADE, null=True)
 
     class Meta:
