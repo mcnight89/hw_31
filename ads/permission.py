@@ -15,6 +15,6 @@ class IsOwnerOrStaff(BasePermission):
     message = 'You do not have permission to delete an ad'
 
     def has_object_permission(self, request, view, obj):
-        if request.user == obj.author or request.user.role in [User.admin, User.moderator]:
+        if request.user == obj.author_id or request.user.role in [User.admin, User.moderator]:
             return True
         return False

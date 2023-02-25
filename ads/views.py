@@ -1,13 +1,8 @@
-import json
-
-from django.core.paginator import Paginator
-from django.db.models import Count, Q
+from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
 from django.utils.decorators import method_decorator
-from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import DetailView, ListView, UpdateView, DeleteView, CreateView
+from django.views.generic import UpdateView
 from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -22,7 +17,6 @@ from ads.serializers import CategorySerializer, LocationSerializer, AdSerializer
     CategoryUpdateSerializer, \
     AdUpdateSerializer, UserUpdateSerializer, CategoryDestroySerializer, AdDestroySerializer, \
     UserDestroySerializer, SelectionSerializer, SelectionCreateSerializer
-from djangoProject import settings
 
 
 # Create your views here.
@@ -117,6 +111,7 @@ class AdDetailView(RetrieveAPIView):
 class AdUpdateView(UpdateAPIView):
     queryset = Ad.objects.all()
     serializer_class = AdUpdateSerializer
+    permission_classes = [IsAuthenticated, IsOwnerOrStaff]
 
 
 @method_decorator(csrf_exempt, name='dispatch')
