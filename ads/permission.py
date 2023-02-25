@@ -1,21 +1,20 @@
 from rest_framework.permissions import BasePermission
-
 from ads.models import User
 
 
-class AdCreatePermission(BasePermission):
-    message = 'You do not have permission to create an ad'
+class IsOwner(BasePermission):
+    message = 'You do not have permission to delete an selection'
 
-    def has_permission(self, request, view):
-        if request.user.role == User.admin or User.moderator:
+    def has_object_permission(self, request, view, obj):
+        if request.user == obj.owner:
             return True
         return False
 
 
-class AdDeletePermission(BasePermission):
-    message = 'You do not have permission to create an ad'
+class IsOwnerOrStaff(BasePermission):
+    message = 'You do not have permission to delete an ad'
 
-    def has_permission(self, request, view):
-        if request.user.role == User.admin or User.moderator:
+    def has_object_permission(self, request, view, obj):
+        if request.user == obj.author or request.user.role in [User.admin, User.moderator]:
             return True
         return False

@@ -10,18 +10,18 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, UpdateView, DeleteView, CreateView
 from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from ads.models import Ad, User, Category, Location
-from ads.permission import AdCreatePermission, AdDeletePermission
+from ads.models import Ad, User, Category, Location, Selection
+from ads.permission import IsOwner, IsOwnerOrStaff
 from ads.serializers import CategorySerializer, LocationSerializer, AdSerializer, UserSerializer, UserCreateSerializer, \
     CategoryDetailSerializer, AdDetailSerializer, UserDetailSerializer, AdCreateSerializer, CategoryCreateSerializer, \
     CategoryUpdateSerializer, \
     AdUpdateSerializer, UserUpdateSerializer, CategoryDestroySerializer, AdDestroySerializer, \
-    UserDestroySerializer
+    UserDestroySerializer, SelectionSerializer, SelectionCreateSerializer
 from djangoProject import settings
 
 
@@ -105,7 +105,7 @@ class AdListView(ListAPIView):
 class AdCreateView(CreateAPIView):
     queryset = Ad.objects.all()
     serializer_class = AdCreateSerializer
-    permission_classes = [IsAuthenticated, AdCreatePermission]
+    permission_classes = [IsAuthenticated, IsOwnerOrStaff]
 
 
 class AdDetailView(RetrieveAPIView):
@@ -146,7 +146,8 @@ class AdImageView(UpdateView):
 class AdDeleteView(DestroyAPIView):
     queryset = Ad.objects.all()
     serializer_class = AdDestroySerializer
-    permission_classes = [IsAuthenticated, AdDeletePermission]
+    permission_classes = [IsAuthenticated, IsOwnerOrStaff]
+
 
 # ===========================================================================
 # USERS #
@@ -191,3 +192,23 @@ class Logout(APIView):
 class LocationViewSet(ModelViewSet):
     queryset = Location.objects.all()
     serializer_class = LocationSerializer
+
+
+# ===========================================================================
+# SELECTION #
+# ===========================================================================
+
+class SelectionViewSet(ModelViewSet):
+    serializer_class = SelectionSerializer
+    queryset = Selection.objects.all()
+    default_permission = [AllowAny]
+    permissions = {"create": [IsAuthenticated],
+                   "update": [IsAuthenticated, IsOwner],
+                   "partial_update": [IsAuthenticated, IsOwner],
+                   "destroy": [IsAuthenticated, IsOwner]
+                   }
+    default_serializer = SelectionSerializer
+    serializers = {"create": SelectionCreateSerializer}
+
+    def get_permissions(self):
+        return [permission() for permission in self.permissions.get(self.action, self.default_permission)]

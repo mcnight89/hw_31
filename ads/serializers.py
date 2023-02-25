@@ -1,6 +1,8 @@
 from rest_framework import serializers
+from rest_framework.relations import SlugRelatedField
+from rest_framework.serializers import ModelSerializer
 
-from ads.models import Location, Category, Ad, User
+from ads.models import Location, Category, Ad, User, Selection
 
 
 # ===========================================================================
@@ -130,3 +132,25 @@ class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
         fields = '__all__'
+
+
+# ===========================================================================
+# SELECTION #
+# ===========================================================================
+class SelectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Selection
+        fields = '__all__'
+
+
+class SelectionCreateSerializer(serializers.ModelSerializer):
+    owner = SlugRelatedField(slug_field="username", read_only=True)
+
+    def create(self, validated_data):
+        requests = self.context.get("request")
+        validated_data["owner"] = requests.user
+        return super().create(validated_data)
+
+    class Meta:
+        model = Selection
+        fields = ["name", "items"]

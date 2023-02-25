@@ -19,11 +19,13 @@ from django.urls import path, include
 from rest_framework import routers
 
 from ads import views
-from ads.views import LocationViewSet
+from ads.views import LocationViewSet, SelectionViewSet
 from djangoProject import settings
 
 router = routers.SimpleRouter()
 router.register('location', LocationViewSet)
+router.register('selection', SelectionViewSet)
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
