@@ -13,9 +13,8 @@ from rest_framework.viewsets import ModelViewSet
 from ads.models import Ad, User, Category, Location, Selection
 from ads.permission import IsOwner, IsOwnerOrStaff
 from ads.serializers import CategorySerializer, LocationSerializer, AdSerializer, UserSerializer, UserCreateSerializer, \
-    CategoryDetailSerializer, AdDetailSerializer, UserDetailSerializer, AdCreateSerializer, CategoryCreateSerializer, \
-    CategoryUpdateSerializer, \
-    AdUpdateSerializer, UserUpdateSerializer, CategoryDestroySerializer, AdDestroySerializer, \
+    AdDetailSerializer, UserDetailSerializer, AdCreateSerializer, \
+    AdUpdateSerializer, UserUpdateSerializer, AdDestroySerializer, \
     UserDestroySerializer, SelectionSerializer, SelectionCreateSerializer
 
 
@@ -27,38 +26,43 @@ def start_page(request):
 # ===========================================================================
 # CATEGORY #
 # ===========================================================================
-class CategoryListView(ListAPIView):
+class CategoryViewSet(ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
-    def get(self, request, *args, **kwargs):
-        category_text = request.GET.get('name', None)
-        if category_text:
-            self.queryset = self.queryset.filter(
-                name__icontains=category_text
-            )
 
-        return super().get(request, *args, **kwargs)
+# lass CategoryListView(ListAPIView):
+#   queryset = Category.objects.all()
+#   serializer_class = CategorySerializer
 
+#   def get(self, request, *args, **kwargs):
+#       category_text = request.GET.get('name', None)
+#       if category_text:
+#           self.queryset = self.queryset.filter(
+#               name__icontains=category_text
+#           )
 
-class CategoryCreateView(CreateAPIView):
-    queryset = Category.objects.all()
-    serializer_class = CategoryCreateSerializer
-
-
-class CategoryDetailView(RetrieveAPIView):
-    queryset = Category.objects.all()
-    serializer_class = CategoryDetailSerializer
+#       return super().get(request, *args, **kwargs)
 
 
-class CategoryUpdateView(UpdateAPIView):
-    queryset = Category.objects.all()
-    serializer_class = CategoryUpdateSerializer
+# lass CategoryCreateView(CreateAPIView):
+#   queryset = Category.objects.all()
+#   serializer_class = CategoryCreateSerializer
 
 
-class CategoryDeleteView(DestroyAPIView):
-    queryset = Category.objects.all()
-    serializer_class = CategoryDestroySerializer
+# lass CategoryDetailView(RetrieveAPIView):
+#   queryset = Category.objects.all()
+#   serializer_class = CategoryDetailSerializer
+
+
+# lass CategoryUpdateView(UpdateAPIView):
+#   queryset = Category.objects.all()
+#   serializer_class = CategoryUpdateSerializer
+
+
+# lass CategoryDeleteView(DestroyAPIView):
+#   queryset = Category.objects.all()
+#   serializer_class = CategoryDestroySerializer
 
 
 # ===========================================================================

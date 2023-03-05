@@ -1,11 +1,15 @@
 from unicodedata import category
-
+from django.core.validators import MinLengthValidator, MaxLengthValidator, MinValueValidator
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+
+from ads.validators import check_age, check_email
 
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
+    slug = models.CharField(null=True, max_length=10, unique=True,
+                            validators=[MinLengthValidator(5), MaxLengthValidator(10)])
 
     class Meta:
         verbose_name = "Категория"
@@ -45,6 +49,8 @@ class User(AbstractUser):
     role = models.CharField(choices=ROLES, max_length=15, default='member')
     age = models.IntegerField(null=True)
     location = models.ForeignKey(Location, on_delete=models.CASCADE, null=True)
+    birth_date = models.DateField(null=True, validators=[check_age])
+    email = models.EmailField(unique=True, null=True, validators=[check_email])
 
     class Meta:
         verbose_name = "Пользователь"
@@ -56,13 +62,13 @@ class User(AbstractUser):
 
 
 class Ad(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, blank=False, validators=[MinLengthValidator(10)])
     author_id = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    price = models.IntegerField()
-    description = models.TextField(max_length=1000, null=True)
+    price = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])
+    description = models.TextField(max_length=1000, blank=True, null=True)
     image = models.ImageField(upload_to='images/', null=True, blank=True)
     category_id = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
-    is_published = models.BooleanField()
+    is_published = models.BooleanField(default=None)
 
     class Meta:
         verbose_name = "Объявление"
