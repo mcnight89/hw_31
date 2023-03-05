@@ -31,40 +31,6 @@ class CategoryViewSet(ModelViewSet):
     serializer_class = CategorySerializer
 
 
-# lass CategoryListView(ListAPIView):
-#   queryset = Category.objects.all()
-#   serializer_class = CategorySerializer
-
-#   def get(self, request, *args, **kwargs):
-#       category_text = request.GET.get('name', None)
-#       if category_text:
-#           self.queryset = self.queryset.filter(
-#               name__icontains=category_text
-#           )
-
-#       return super().get(request, *args, **kwargs)
-
-
-# lass CategoryCreateView(CreateAPIView):
-#   queryset = Category.objects.all()
-#   serializer_class = CategoryCreateSerializer
-
-
-# lass CategoryDetailView(RetrieveAPIView):
-#   queryset = Category.objects.all()
-#   serializer_class = CategoryDetailSerializer
-
-
-# lass CategoryUpdateView(UpdateAPIView):
-#   queryset = Category.objects.all()
-#   serializer_class = CategoryUpdateSerializer
-
-
-# lass CategoryDeleteView(DestroyAPIView):
-#   queryset = Category.objects.all()
-#   serializer_class = CategoryDestroySerializer
-
-
 # ===========================================================================
 # ADS #
 # ===========================================================================
