@@ -25,6 +25,7 @@ class AdFactory(factory.django.DjangoModelFactory):
         model = Ad
 
     name = factory.Faker('name')
+    is_published = factory.Faker('boolean')
     category_id = factory.SubFactory(CategoryFactory)
     author_id = factory.SubFactory(UserFactory)
     price = 200
