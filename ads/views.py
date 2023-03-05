@@ -163,17 +163,11 @@ class LocationViewSet(ModelViewSet):
 # SELECTION #
 # ===========================================================================
 
-class SelectionViewSet(ModelViewSet):
-    serializer_class = SelectionSerializer
+class SelectionListView(ListAPIView):
     queryset = Selection.objects.all()
-    default_permission = [AllowAny]
-    permissions = {"create": [IsAuthenticated],
-                   "update": [IsAuthenticated, IsOwner],
-                   "partial_update": [IsAuthenticated, IsOwner],
-                   "destroy": [IsAuthenticated, IsOwner]
-                   }
-    default_serializer = SelectionSerializer
-    serializers = {"create": SelectionCreateSerializer}
+    serializer_class = SelectionSerializer
 
-    def get_permissions(self):
-        return [permission() for permission in self.permissions.get(self.action, self.default_permission)]
+
+class SelectionCreateView(CreateAPIView):
+    queryset = Selection.objects.all()
+    serializer_class = SelectionCreateSerializer

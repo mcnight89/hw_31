@@ -26,11 +26,11 @@ class AdDetailSerializer(serializers.ModelSerializer):
 
 class AdCreateSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
+    is_published = serializers.BooleanField(default=None, validators=[check_not_published])
 
     class Meta:
         model = Ad
-        fields = ['id', 'name', 'author_id', 'category_id', 'price', 'description']
-        is_published = serializers.BooleanField(default=None, validators=[check_not_published])
+        fields = ['id', 'name', 'author_id', 'category_id', 'price', 'is_published', 'description']
 
 
 class AdUpdateSerializer(serializers.ModelSerializer):
@@ -120,13 +120,8 @@ class SelectionSerializer(serializers.ModelSerializer):
 
 
 class SelectionCreateSerializer(serializers.ModelSerializer):
-    owner = SlugRelatedField(slug_field="username", read_only=True)
-
-    def create(self, validated_data):
-        requests = self.context.get("request")
-        validated_data["owner"] = requests.user
-        return super().create(validated_data)
+    id = serializers.IntegerField(required=False)
 
     class Meta:
         model = Selection
-        fields = ["name", "items"]
+        fields = '__all__'

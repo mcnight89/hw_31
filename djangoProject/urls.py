@@ -19,12 +19,11 @@ from django.urls import path, include
 from rest_framework import routers
 
 from ads import views
-from ads.views import LocationViewSet, SelectionViewSet, CategoryViewSet
+from ads.views import LocationViewSet, CategoryViewSet
 from djangoProject import settings
 
 router = routers.SimpleRouter()
 router.register('location', LocationViewSet)
-router.register('selection', SelectionViewSet)
 router.register('category', CategoryViewSet)
 
 
@@ -32,9 +31,9 @@ router.register('category', CategoryViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.start_page),
-    #path('category/', include('ads.urls_cat')),
     path('ads/', include('ads.urls_ad')),
     path('users/', include('ads.urls_user')),
+    path('selection/', include('ads.urls_selection')),
     path('api_auth/', include('rest_framework.urls'))
 
 ]
